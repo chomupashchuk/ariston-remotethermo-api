@@ -29,13 +29,6 @@ from aristonremotethermo import ariston
 ```
 
 ### API dependencies
-  - `copy` - for dictionary copy.
-  - `json` - storing data for troubleshooting purposes.
-  - `logging` - for logging purposes.
-  - `math` - for float comparison purposes.
-  - `os` - for folders check to store data for troubleshooting purposes.
-  - `threading` - for processess coordination.
-  - `time` - for monitoring time and filtering out requests based on time of specific actions.
   - `requests` - for HTTPS requests.
   
 ### API start communication
