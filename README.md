@@ -20,6 +20,9 @@ Website https://www.ariston-net.remotethermo.com does not provide required data 
 
 ## API use
 API was developed as `AristonHandler` class, which can be imported from the module.
+```
+from aristonremotethermo import ariston
+```
 
 ### API dependencies
   - `copy` - for dictionary copy.
@@ -33,7 +36,9 @@ API was developed as `AristonHandler` class, which can be imported from the modu
   
 ### API start communication
 ```
-ApiInstance = AristonHandler(
+from aristonremotethermo import ariston
+
+ApiInstance = ariston.AristonHandler(
             username='username',
             password='password',
             sensors=list_of_sensors,
