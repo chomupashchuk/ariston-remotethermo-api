@@ -14,7 +14,7 @@ _LOGGER = logging.getLogger(__name__)
 class AristonHandler():
     """Ariston checker"""
 
-    VERSION = "1.0.3"
+    VERSION = "1.0.4"
 
     PARAM_ACCOUNT_CH_GAS = "account_ch_gas"
     PARAM_ACCOUNT_CH_ELECTRICITY = "account_ch_electricity"
@@ -1435,7 +1435,6 @@ class AristonHandler():
         if request_type == self._REQUEST_GET_VERSION:
             try:
                 if self._version != "":
-                    update = False
                     self._ariston_sensors[self.PARAM_ONLINE_VERSION][self.VALUE] = self._version
                     web_version = self._version.split(".")
                     installed_version = self.VERSION.split(".")
@@ -1446,9 +1445,8 @@ class AristonHandler():
                         for symbol in range(0, web_symbols):
                             if int(web_version[symbol]) > int(installed_version[symbol]):
                                 self._ariston_sensors[self.PARAM_UPDATE][self.VALUE] = True
-                                update = True
                                 break
-                        if not update:
+                        else:
                             self._ariston_sensors[self.PARAM_UPDATE][self.VALUE] = False
                     else:
                         # update available if web has higher value
