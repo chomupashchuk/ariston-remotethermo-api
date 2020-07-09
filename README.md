@@ -25,7 +25,7 @@ pip install aristonremotethermo
 ```
 Import api in python script:
 ```
-from aristonremotethermo import ariston
+from aristonremotethermo.ariston import AristonHandler
 ```
 
 ### API dependencies
@@ -33,9 +33,9 @@ from aristonremotethermo import ariston
   
 ### API start communication
 ```
-from aristonremotethermo import ariston
+from aristonremotethermo.ariston import AristonHandler
 
-ApiInstance = ariston.AristonHandler(
+ApiInstance = AristonHandler(
             username='username',
             password='password',
             sensors=list_of_sensors,
