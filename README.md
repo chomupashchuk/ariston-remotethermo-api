@@ -19,7 +19,11 @@ You may check possible support of your boiler by logging into https://www.aristo
 Website https://www.ariston-net.remotethermo.com does not provide required data for this kind of a boiler.
 
 ## API use
-API was developed as `AristonHandler` class, which can be imported from the module.
+API was developed as `AristonHandler` class, which can be imported from the module. Use PIP to install the module:
+```
+pip install aristonremotethermo
+```
+Import api in python script:
 ```
 from aristonremotethermo import ariston
 ```
