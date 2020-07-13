@@ -1,3 +1,6 @@
+# Version 1.0.7
+- Help annotations update
+
 # Version 1.0.6
 - changed algorithm to visualize temperatures when changing their values
 

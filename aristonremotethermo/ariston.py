@@ -6,6 +6,7 @@ import math
 import os
 import threading
 import time
+from typing import Union
 import requests
 
 _LOGGER = logging.getLogger(__name__)
@@ -98,7 +99,7 @@ class AristonHandler():
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     """
 
-    _VERSION = "1.0.6"
+    _VERSION = "1.0.7"
 
     _PARAM_ACCOUNT_CH_GAS = "account_ch_gas"
     _PARAM_ACCOUNT_CH_ELECTRICITY = "account_ch_electricity"
@@ -487,17 +488,17 @@ class AristonHandler():
             self._ariston_sensors[self._PARAM_THERMAL_CLEANSE_CYCLE][self._UNITS] = 'h'
 
     def __init__(self,
-                 username,
-                 password,
-                 sensors=[],
-                 retries=5,
-                 polling=1,
-                 store_file=False,
-                 store_folder="",
-                 units=_UNIT_METRIC,
-                 ch_and_dhw=False,
-                 dhw_unknown_as_on=True,
-                 ):
+                 username: str,
+                 password: str,
+                 sensors: list = [],
+                 retries: int = 5,
+                 polling: Union[float, int] = 1.,
+                 store_file: bool = False,
+                 store_folder: str = "",
+                 units: str = _UNIT_METRIC,
+                 ch_and_dhw: bool = False,
+                 dhw_unknown_as_on: bool = True,
+                 ) -> None:
         """
         Initialize API.
         """
@@ -751,31 +752,31 @@ class AristonHandler():
             return False
 
     @property
-    def available(self):
+    def available(self) -> bool:
         """Return if Aristons's API is responding."""
         return self._errors <= self._MAX_ERRORS and self._login and self._plant_id != "" and self._ariston_data != {}
 
     @property
-    def ch_available(self):
+    def ch_available(self) -> bool:
         """Return if Aristons's API is responding and if there is data available for the CH."""
         if self._ariston_sensors[self._PARAM_UNITS][self._VALUE] not in {self._VAL_METRIC, self._VAL_IMPERIAL}:
             return False
         return self.available and self._ariston_data["zone"]["mode"]["allowedOptions"] != []
 
     @property
-    def dhw_available(self):
+    def dhw_available(self) -> bool:
         """Return if Aristons's API is responding and if there is data available for the DHW."""
         if self._ariston_sensors[self._PARAM_UNITS][self._VALUE] not in {self._VAL_METRIC, self._VAL_IMPERIAL}:
             return False
         return self.available
 
     @property
-    def version(self):
+    def version(self) -> str:
         """Return version of the API in use."""
         return self._VERSION
 
     @property
-    def sensor_values(self):
+    def sensor_values(self) -> dict:
         """
         Return dictionary of sensors and their values.
 
@@ -788,12 +789,12 @@ class AristonHandler():
         return self._ariston_sensors
 
     @property
-    def setting_data(self):
+    def setting_data(self) -> bool:
         """Return if setting of data is in progress."""
         return self._set_param != {}
 
     @property
-    def supported_sensors_get(self):
+    def supported_sensors_get(self) -> set:
         """
         Return set of all supported sensors/parameters in API.
         Note that it is sensors supported by API, not the server, so some might never have valid values.
@@ -801,7 +802,7 @@ class AristonHandler():
         return self._SENSOR_LIST
 
     @property
-    def supported_sensors_set(self):
+    def supported_sensors_set(self) -> set:
         """
         Return set of all parameters that potentially can be set by API.
         Note that it is parameters supported by API, not the server, so some might be impossible to be set.
@@ -811,7 +812,7 @@ class AristonHandler():
         return self._SENSOR_SET_LIST
 
     @property
-    def supported_sensors_set_values(self):
+    def supported_sensors_set_values(self) -> dict:
         """
         Return dictionary of sensors/parameters to be set and allowed values.
         Allowed values can be returned as:
@@ -3104,7 +3105,7 @@ class AristonHandler():
             pass
         return self._current_temp_economy_ch
 
-    def set_http_data(self, **parameter_list):
+    def set_http_data(self, **parameter_list: Union[str, int, float]) -> None:
         """
         Set data over http, where **parameter_list excepts parameters and wanted values.
 
@@ -3431,13 +3432,13 @@ class AristonHandler():
             _LOGGER.warning("%s No valid data fetched from server to set changes", self)
             raise Exception("Connection data error, problem to set data")
 
-    def start(self):
+    def start(self) -> None:
         """Start communication with the server."""
         self._timer_periodic_read = threading.Timer(1, self._queue_get_data)
         self._timer_periodic_read.start()
         self._started = True
 
-    def stop(self):
+    def stop(self) -> None:
         """Stop communication with the server."""
         self._started = False
         self._timer_periodic_read.cancel()
