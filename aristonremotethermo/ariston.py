@@ -98,7 +98,7 @@ class AristonHandler():
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     """
 
-    _VERSION = "1.0.5"
+    _VERSION = "1.0.6"
 
     _PARAM_ACCOUNT_CH_GAS = "account_ch_gas"
     _PARAM_ACCOUNT_CH_ELECTRICITY = "account_ch_electricity"
@@ -691,6 +691,9 @@ class AristonHandler():
         # initiate timer between set request attempts
         self._timer_between_set = self._DELAY_NORMAL
 
+        self._current_temp_economy_ch = None
+        self._current_temp_economy_dhw = None
+
         self._started = False
 
         if self._store_file:
@@ -1075,7 +1078,7 @@ class AristonHandler():
                         self._ariston_data["zone"]["heatRequest"]
                     if self._ariston_data["dhwStorageTemp"] != self._INVALID_STORAGE_TEMP \
                             and self._dhw_trend_up \
-                            and self._VALUE_TO_MODE[self._ariston_data["mode"]] in {self._VAL_SUMMER, self._VAL_WINTER}\
+                            and self._VALUE_TO_MODE[self._ariston_data["mode"]] in {self._VAL_SUMMER, self._VAL_WINTER} \
                             and self._ariston_data["flameSensor"] and not self._ch_and_dhw:
                         self._ariston_sensors[self._PARAM_CH_FLAME][self._VALUE] = False
                 except:
@@ -1089,7 +1092,7 @@ class AristonHandler():
                         self._ariston_sensors[self._PARAM_DHW_FLAME][self._VALUE] = True
                     elif self._ariston_data["dhwStorageTemp"] != self._INVALID_STORAGE_TEMP \
                             and self._dhw_trend_up \
-                            and self._VALUE_TO_MODE[self._ariston_data["mode"]] in [self._VAL_SUMMER, self._VAL_WINTER]\
+                            and self._VALUE_TO_MODE[self._ariston_data["mode"]] in [self._VAL_SUMMER, self._VAL_WINTER] \
                             and self._ariston_data["flameSensor"]:
                         self._ariston_sensors[self._PARAM_DHW_FLAME][self._VALUE] = True
                     elif self._dhw_unknown_as_on and self._ariston_data["flameSensor"]:
@@ -1599,73 +1602,42 @@ class AristonHandler():
                             elif parameter == self._PARAM_CH_SET_TEMPERATURE:
 
                                 self._ariston_sensors[parameter][self._VALUE] = value
+                                if self._current_temp_economy_ch:
+                                    self._ariston_sensors[self._PARAM_CH_ECONOMY_TEMPERATURE][self._VALUE] = value
+                                elif self._current_temp_economy_ch == False:
+                                    self._ariston_sensors[self._PARAM_CH_COMFORT_TEMPERATURE][self._VALUE] = value
 
                             elif parameter == self._PARAM_CH_COMFORT_TEMPERATURE:
 
                                 self._ariston_sensors[parameter][self._VALUE] = value
-                                is_current_comfort = False
-                                try:
-                                    if self._VALUE_TO_CH_MODE[self._ariston_data["zone"]["mode"]["value"]] == \
-                                            self._VAL_PROGRAM:
-                                        is_current_comfort = True
-                                        for param_item in self._ariston_other_data:
-                                            if param_item["id"] == self._ARISTON_CH_ECONOMY_TEMP:
-                                                if math.isclose(
-                                                        self._ariston_data["zone"]["comfortTemp"]["value"],
-                                                        param_item["value"],
-                                                        abs_tol=0.01):
-                                                    # it is economy
-                                                    is_current_comfort = False
-                                                    break
-                                except:
-                                    pass
-                                if is_current_comfort:
+                                if self._current_temp_economy_ch == False:
                                     self._ariston_sensors[self._PARAM_CH_SET_TEMPERATURE][self._VALUE] = value
 
                             elif parameter == self._PARAM_CH_ECONOMY_TEMPERATURE:
 
                                 self._ariston_sensors[parameter][self._VALUE] = value
-                                try:
-                                    if self._VALUE_TO_CH_MODE[self._ariston_data["zone"]["mode"]["value"]] == \
-                                            self._VAL_PROGRAM:
-                                        for param_item in self._ariston_other_data:
-                                            if param_item["id"] == self._ARISTON_CH_ECONOMY_TEMP:
-                                                if math.isclose(
-                                                        self._ariston_data["zone"]["comfortTemp"]["value"],
-                                                        param_item["value"],
-                                                        abs_tol=0.01):
-                                                    self._ariston_sensors[self._PARAM_CH_SET_TEMPERATURE][
-                                                        self._VALUE] = value
-                                                    break
-                                except:
-                                    pass
+                                if self._current_temp_economy_ch:
+                                    self._ariston_sensors[self._PARAM_CH_SET_TEMPERATURE][self._VALUE] = value
 
                             elif parameter == self._PARAM_DHW_SET_TEMPERATURE:
 
                                 self._ariston_sensors[parameter][self._VALUE] = value
+                                if self._current_temp_economy_dhw:
+                                    self._ariston_sensors[self._PARAM_DHW_ECONOMY_TEMPERATURE][self._VALUE] = value
+                                else:
+                                    self._ariston_sensors[self._PARAM_DHW_COMFORT_TEMPERATURE][self._VALUE] = value
 
                             elif parameter == self._PARAM_DHW_COMFORT_TEMPERATURE:
 
                                 self._ariston_sensors[parameter][self._VALUE] = value
-                                is_economy = False
-                                try:
-                                    if self._VALUE_TO_DHW_MODE[self._ariston_data["dhwMode"]] == self._VAL_PROGRAM:
-                                        if not self._ariston_data["dhwTimeProgComfortActive"]:
-                                            is_economy = True
-                                except:
-                                    pass
-                                if not is_economy:
+                                if not self._current_temp_economy_dhw:
                                     self._ariston_sensors[self._PARAM_DHW_SET_TEMPERATURE][self._VALUE] = value
 
                             elif parameter == self._PARAM_DHW_ECONOMY_TEMPERATURE:
 
                                 self._ariston_sensors[parameter][self._VALUE] = value
-                                try:
-                                    if self._VALUE_TO_DHW_MODE[self._ariston_data["dhwMode"]] == self._VAL_PROGRAM:
-                                        if not self._ariston_data["dhwTimeProgComfortActive"]:
-                                            self._ariston_sensors[self._PARAM_DHW_SET_TEMPERATURE][self._VALUE] = value
-                                except:
-                                    pass
+                                if self._current_temp_economy_dhw:
+                                    self._ariston_sensors[self._PARAM_DHW_SET_TEMPERATURE][self._VALUE] = value
 
                             elif parameter == self._PARAM_DHW_MODE:
 
@@ -2566,7 +2538,7 @@ class AristonHandler():
                 if self._PARAM_DHW_COMFORT_TEMPERATURE in self._set_param:
                     if dhw_temp[self._PARAM_DHW_COMFORT_TEMPERATURE] == \
                             self._set_param[self._PARAM_DHW_COMFORT_TEMPERATURE]:
-                        if self._set_time_start[self._set_request_for_parameter(self._PARAM_DHW_COMFORT_TEMPERATURE)] <\
+                        if self._set_time_start[self._set_request_for_parameter(self._PARAM_DHW_COMFORT_TEMPERATURE)] < \
                                 dhw_temp_time[self._PARAM_DHW_COMFORT_TEMPERATURE]:
                             # value should be up to date and match to remove from setting
                             del self._set_param[self._PARAM_DHW_COMFORT_TEMPERATURE]
@@ -2591,7 +2563,7 @@ class AristonHandler():
                 if self._PARAM_DHW_ECONOMY_TEMPERATURE in self._set_param:
                     if dhw_temp[self._PARAM_DHW_ECONOMY_TEMPERATURE] == \
                             self._set_param[self._PARAM_DHW_ECONOMY_TEMPERATURE]:
-                        if self._set_time_start[self._set_request_for_parameter(self._PARAM_DHW_ECONOMY_TEMPERATURE)] <\
+                        if self._set_time_start[self._set_request_for_parameter(self._PARAM_DHW_ECONOMY_TEMPERATURE)] < \
                                 dhw_temp_time[self._PARAM_DHW_ECONOMY_TEMPERATURE]:
                             # value should be up to date and match to remove from setting
                             del self._set_param[self._PARAM_DHW_ECONOMY_TEMPERATURE]
@@ -2836,7 +2808,7 @@ class AristonHandler():
                     if set_data["NewValue"]["zone"]["comfortTemp"]["value"] == \
                             self._set_param[self._PARAM_CH_SET_TEMPERATURE]:
                         if self._set_time_start[self._set_request_for_parameter(self._PARAM_CH_SET_TEMPERATURE)] < \
-                                self._get_time_end[self._get_request_for_parameter(self._PARAM_CH_SET_TEMPERATURE)] and\
+                                self._get_time_end[self._get_request_for_parameter(self._PARAM_CH_SET_TEMPERATURE)] and \
                                 self._get_zero_temperature[self._PARAM_CH_SET_TEMPERATURE] == 0:
                             # value should be up to date and match to remove from setting
                             del self._set_param[self._PARAM_CH_SET_TEMPERATURE]
@@ -3075,6 +3047,63 @@ class AristonHandler():
                         _LOGGER.warning("%s No stable connection to set the data", self)
                         raise Exception("Unstable connection to set the data")
 
+    def _check_if_dhw_economy(self):
+        try:
+            dhw_params = [
+                self._PARAM_DHW_SET_TEMPERATURE,
+                self._PARAM_DHW_COMFORT_TEMPERATURE,
+                self._PARAM_DHW_ECONOMY_TEMPERATURE
+            ]
+            if any([i in self._set_param for i in dhw_params]):
+                # data is still changing, assume it is the least value
+                return self._current_temp_economy_ch
+            if self._ariston_data != {}:
+                if self._VALUE_TO_DHW_MODE[self._ariston_data["dhwMode"]] == self._VAL_PROGRAM:
+                    if not self._ariston_data["dhwTimeProgComfortActive"]:
+                        # economy temperature is being used
+                        self._current_temp_economy_dhw = True
+                    else:
+                        self._current_temp_economy_dhw = False
+                else:
+                    self._current_temp_economy_dhw = False
+            else:
+                self._current_temp_economy_dhw = None
+        except:
+            self._current_temp_economy_dhw = None
+            pass
+        return self._current_temp_economy_dhw
+
+    def _check_if_ch_economy(self):
+        try:
+            ch_params = [
+                self._PARAM_CH_SET_TEMPERATURE,
+                self._PARAM_CH_COMFORT_TEMPERATURE,
+                self._PARAM_CH_ECONOMY_TEMPERATURE
+            ]
+            if any([i in self._set_param for i in ch_params]):
+                # data is still changing, assume it is the least value
+                return self._current_temp_economy_ch
+            if self._ariston_other_data != {} and self._ariston_data != {}:
+                if self._VALUE_TO_CH_MODE[self._ariston_data["zone"]["mode"]["value"]] == self._VAL_PROGRAM:
+                    for param_item in self._ariston_other_data:
+                        if param_item["id"] == self._ARISTON_CH_ECONOMY_TEMP:
+                            if math.isclose(
+                                    self._ariston_data["zone"]["comfortTemp"]["value"],
+                                    param_item["value"],
+                                    abs_tol=0.01):
+                                self._current_temp_economy_ch = True
+                                break
+                        else:
+                            self._current_temp_economy_ch = False
+                else:
+                    self._current_temp_economy_ch = None
+            else:
+                self._current_temp_economy_ch = None
+        except:
+            self._current_temp_economy_ch = None
+            pass
+        return self._current_temp_economy_ch
+
     def set_http_data(self, **parameter_list):
         """
         Set data over http, where **parameter_list excepts parameters and wanted values.
@@ -3162,25 +3191,13 @@ class AristonHandler():
                     try:
                         # round to nearest 0.5
                         temperature = round(float(good_values[self._PARAM_CH_SET_TEMPERATURE]) * 2.0) / 2.0
-                        temp_set = False
-                        try:
-                            if self._VALUE_TO_CH_MODE[self._ariston_data["zone"]["mode"]["value"]] == \
-                                    self._VAL_PROGRAM:
-                                if self._ariston_other_data != {}:
-                                    for param_item in self._ariston_other_data:
-                                        if param_item["id"] == self._ARISTON_CH_ECONOMY_TEMP:
-                                            if math.isclose(
-                                                    self._ariston_data["zone"]["comfortTemp"]["value"],
-                                                    param_item["value"],
-                                                    abs_tol=0.01):
-                                                self._set_param[self._PARAM_CH_ECONOMY_TEMPERATURE] = temperature
-                                                temp_set = True
-                                                break
-                                    self._set_param[self._PARAM_CH_COMFORT_TEMPERATURE] = temperature
-                                    temp_set = True
-                        except:
-                            pass
-                        if not temp_set:
+                        self._check_if_ch_economy()
+                        if self._current_temp_economy_ch:
+                            self._set_param[self._PARAM_CH_ECONOMY_TEMPERATURE] = temperature
+                        elif self._current_temp_economy_ch == False:
+                            self._set_param[self._PARAM_CH_COMFORT_TEMPERATURE] = temperature
+                        else:
+                            # None value
                             self._set_param[self._PARAM_CH_SET_TEMPERATURE] = temperature
                         _LOGGER.info('%s New CH temperature %s', self, temperature)
                     except:
@@ -3194,16 +3211,10 @@ class AristonHandler():
                     try:
                         # round to nearest 1
                         temperature = round(float(good_values[self._PARAM_DHW_SET_TEMPERATURE]))
-                        temp_set = False
-                        try:
-                            if self._VALUE_TO_DHW_MODE[self._ariston_data["dhwMode"]] == self._VAL_PROGRAM:
-                                if not self._ariston_data["dhwTimeProgComfortActive"]:
-                                    # economy temperature is being used
-                                    self._set_param[self._PARAM_DHW_ECONOMY_TEMPERATURE] = temperature
-                                    temp_set = True
-                        except:
-                            pass
-                        if not temp_set:
+                        self._check_if_dhw_economy()
+                        if self._current_temp_economy_dhw:
+                            self._set_param[self._PARAM_DHW_ECONOMY_TEMPERATURE] = temperature
+                        else:
                             self._set_param[self._PARAM_DHW_COMFORT_TEMPERATURE] = temperature
                         _LOGGER.info('%s New DHW temperature %s', self, temperature)
                     except:
@@ -3220,6 +3231,7 @@ class AristonHandler():
                         self._set_param[self._PARAM_DHW_COMFORT_TEMPERATURE] = temperature
                         _LOGGER.info('%s New DHW scheduled comfort temperature %s', self,
                                      good_values[self._PARAM_DHW_COMFORT_TEMPERATURE])
+                        self._check_if_dhw_economy()
                     except:
                         _LOGGER.warning('%s Not supported DHW scheduled comfort temperature value: %s', self,
                                         good_values[self._PARAM_DHW_COMFORT_TEMPERATURE])
@@ -3234,6 +3246,7 @@ class AristonHandler():
                         temperature = round(float(good_values[self._PARAM_DHW_ECONOMY_TEMPERATURE]))
                         self._set_param[self._PARAM_DHW_ECONOMY_TEMPERATURE] = temperature
                         _LOGGER.info('%s New DHW scheduled economy temperature %s', self, temperature)
+                        self._check_if_dhw_economy()
                     except:
                         _LOGGER.warning('%s Not supported DHW scheduled economy temperature value: %s', self,
                                         good_values[self._PARAM_DHW_ECONOMY_TEMPERATURE])
@@ -3248,6 +3261,7 @@ class AristonHandler():
                         temperature = round(float(good_values[self._PARAM_CH_COMFORT_TEMPERATURE]) * 2.0) / 2.0
                         self._set_param[self._PARAM_CH_COMFORT_TEMPERATURE] = temperature
                         _LOGGER.info('%s New CH temperature %s', self, temperature)
+                        self._check_if_ch_economy()
                     except:
                         _LOGGER.warning('%s Not supported CH comfort scheduled temperature value: %s', self,
                                         good_values[self._PARAM_CH_COMFORT_TEMPERATURE])
@@ -3262,6 +3276,7 @@ class AristonHandler():
                         temperature = round(float(good_values[self._PARAM_CH_ECONOMY_TEMPERATURE]) * 2.0) / 2.0
                         self._set_param[self._PARAM_CH_ECONOMY_TEMPERATURE] = temperature
                         _LOGGER.info('%s New CH temperature %s', self, temperature)
+                        self._check_if_ch_economy()
                     except:
                         _LOGGER.warning('%s Not supported CH economy scheduled temperature value: %s', self,
                                         good_values[self._PARAM_CH_ECONOMY_TEMPERATURE])
