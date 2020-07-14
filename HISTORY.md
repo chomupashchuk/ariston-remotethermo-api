@@ -1,3 +1,6 @@
+# Version 1.0.10
+- Folder creation handling for data store is updated;
+
 # Version 1.0.9
 - Change the way changed temperature is visualized;
 
