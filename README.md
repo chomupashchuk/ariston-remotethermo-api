@@ -58,9 +58,9 @@ See `help(AristonHandler)`.
 ```
 ApiInstance.set_http_data(parameter1=value1,parameter2=value2,...)
 ```
-Method sets values for spefific parameter names (see proprerty `supported_sensors_set_values` from `help(AristonHandler)`) on the remote server.
+Method sets values for specific parameter names (see property `supported_sensors_set_values` from `help(AristonHandler)`) on the remote server.
 
 #### API change of data example
 ```
-ApiInstance.set_http_data("mode"="winter","ch_mode"="scheduled")
+ApiInstance.set_http_data(mode="winter",ch_mode="scheduled")
 ```
