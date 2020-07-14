@@ -1,3 +1,6 @@
+# Version 1.0.9
+- Change the way changed temperature is visualized;
+
 # Version 1.0.8
 - Change the way floats are compared in all places;
 - More flexible data types are allowed in set_http_data method;
