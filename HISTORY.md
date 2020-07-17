@@ -1,3 +1,9 @@
+# Version 1.0.12
+- DHW and CH availability status update;
+
+# Version 1.0.11
+- Code cleanup;
+
 # Version 1.0.10
 - Folder creation handling for data store is updated;
 
