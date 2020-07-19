@@ -1,3 +1,6 @@
+# Version 1.0.14
+- code cleanup;
+
 # Version 1.0.13
 - code cleanup;
 - additional class for handling Velis is introduced;

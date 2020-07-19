@@ -9,8 +9,6 @@ import time
 from typing import Union
 import requests
 
-_LOGGER = logging.getLogger(__name__)
-
 
 class AristonHandler:
     """
@@ -102,7 +100,9 @@ class AristonHandler:
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     """
 
-    _VERSION = "1.0.13"
+    _VERSION = "1.0.14"
+
+    _LOGGER = logging.getLogger(__name__)
 
     _PARAM_ACCOUNT_CH_GAS = "account_ch_gas"
     _PARAM_ACCOUNT_CH_ELECTRICITY = "account_ch_electricity"
@@ -940,10 +940,10 @@ class AristonHandler:
                     json=login_data,
                     verify=True)
             except requests.exceptions.RequestException:
-                _LOGGER.warning('%s Authentication login error', self)
+                self._LOGGER.warning('%s Authentication login error', self)
                 raise Exception("Login request exception")
             if resp.status_code != 200:
-                _LOGGER.warning('%s Unexpected reply during login: %s', self, resp.status_code)
+                self._LOGGER.warning('%s Unexpected reply during login: %s', self, resp.status_code)
                 raise Exception("Login unexpected reply code")
             if resp.url.startswith(self._url + "/PlantDashboard/Index/") or resp.url.startswith(
                     self._url + "/PlantManagement/Index/") or resp.url.startswith(
@@ -954,21 +954,21 @@ class AristonHandler:
                 with self._plant_id_lock:
                     self._plant_id = resp.url.split("/")[5]
                     self._login = True
-                    _LOGGER.info('%s Plant ID is %s', self, self._plant_id)
+                    self._LOGGER.info('%s Plant ID is %s', self, self._plant_id)
             elif resp.url.startswith(self._url + "/PlantData/Index/") or resp.url.startswith(
                     self._url + "/UserData/Index/"):
                 with self._plant_id_lock:
                     plant_id_attribute = resp.url.split("/")[5]
                     self._plant_id = plant_id_attribute.split("?")[0]
                     self._login = True
-                    _LOGGER.info('%s Plant ID is %s', self, self._plant_id)
+                    self._LOGGER.info('%s Plant ID is %s', self, self._plant_id)
             elif resp.url.startswith(self._url + "/Menu/User/Index/"):
                 with self._plant_id_lock:
                     self._plant_id = resp.url.split("/")[6]
                     self._login = True
-                    _LOGGER.info('%s Plant ID is %s', self, self._plant_id)
+                    self._LOGGER.info('%s Plant ID is %s', self, self._plant_id)
             else:
-                _LOGGER.warning('%s Authentication login error', self)
+                self._LOGGER.warning('%s Authentication login error', self)
                 raise Exception("Login parsing of URL failed")
         return
 
@@ -1673,10 +1673,10 @@ class AristonHandler:
     def _store_data(self, resp, request_type=""):
         """Store received dictionary"""
         if resp.status_code != 200:
-            _LOGGER.warning('%s %s invalid reply code %s', self, request_type, resp.status_code)
+            self._LOGGER.warning('%s %s invalid reply code %s', self, request_type, resp.status_code)
             raise Exception("Unexpected code {} received for the request {}".format(resp.status_code, request_type))
         if not self._json_validator(resp.json()):
-            _LOGGER.warning('%s %s No json detected', self, request_type)
+            self._LOGGER.warning('%s %s No json detected', self, request_type)
             raise Exception("JSON did not pass validation for the request {}".format(request_type))
         store_none_zero = False
         last_temp = {}
@@ -1742,7 +1742,7 @@ class AristonHandler:
                 self._ariston_data = copy.deepcopy(resp.json())
             except copy.error:
                 self._ariston_data = {}
-                _LOGGER.warning("%s Invalid data received for Main, not JSON", self)
+                self._LOGGER.warning("%s Invalid data received for Main, not JSON", self)
                 raise Exception("Corruption at reading data of the request {}".format(request_type))
             try:
                 # force default modes if received none
@@ -1821,7 +1821,7 @@ class AristonHandler:
                     self._get_zero_temperature[self._PARAM_CH_SET_TEMPERATURE] = 0
             except KeyError:
                 self._ariston_data = {}
-                _LOGGER.warning("%s Invalid data received for Main", self)
+                self._LOGGER.warning("%s Invalid data received for Main", self)
                 store_file = 'main_data_from_web.json'
                 store_file_path = os.path.join(self._store_folder, store_file)
                 with open(store_file_path, 'w') as ariston_fetched:
@@ -1844,7 +1844,7 @@ class AristonHandler:
                                 break
                 self._dhw_history.append(self._ariston_data["dhwStorageTemp"])
             except KeyError:
-                _LOGGER.warning('%s Error handling DHW temperature history', self)
+                self._LOGGER.warning('%s Error handling DHW temperature history', self)
 
             self._set_sensors(request_type)
             self._set_sensors(self._REQUEST_GET_VERSION)
@@ -1873,7 +1873,7 @@ class AristonHandler:
                 self._ariston_ch_data = copy.deepcopy(resp.json())
             except copy.error:
                 self._ariston_ch_data = {}
-                _LOGGER.warning("%s Invalid data received for CH, not JSON", self)
+                self._LOGGER.warning("%s Invalid data received for CH, not JSON", self)
                 raise Exception("Corruption at reading data of the request {}".format(request_type))
             try:
                 # keep latest CH comfort temperature if received invalid
@@ -1897,7 +1897,7 @@ class AristonHandler:
                     else:
                         self._get_zero_temperature[self._PARAM_CH_ECONOMY_TEMPERATURE] = 0
             except KeyError:
-                _LOGGER.warning("%s Invalid data received for CH", self)
+                self._LOGGER.warning("%s Invalid data received for CH", self)
                 raise Exception("Corruption at reading data of the request {}".format(request_type))
 
             self._set_sensors(request_type)
@@ -1909,7 +1909,7 @@ class AristonHandler:
                 self._ariston_error_data = copy.deepcopy(resp.json())
             except copy.error:
                 self._ariston_error_data = {}
-                _LOGGER.warning("%s Invalid data received for error, not JSON", self)
+                self._LOGGER.warning("%s Invalid data received for error, not JSON", self)
                 raise Exception("Corruption at reading data of the request {}".format(request_type))
 
             self._set_sensors(request_type)
@@ -1921,7 +1921,7 @@ class AristonHandler:
                 self._ariston_gas_data = copy.deepcopy(resp.json())
             except copy.error:
                 self._ariston_gas_data = {}
-                _LOGGER.warning("%s Invalid data received for energy use, not JSON", self)
+                self._LOGGER.warning("%s Invalid data received for energy use, not JSON", self)
                 raise Exception("Corruption at reading data of the request {}".format(request_type))
 
             self._set_sensors(request_type)
@@ -1959,7 +1959,7 @@ class AristonHandler:
                 self._ariston_other_data = copy.deepcopy(resp.json())
             except copy.error:
                 self._ariston_other_data = {}
-                _LOGGER.warning("%s Invalid data received for parameters, not JSON", self)
+                self._LOGGER.warning("%s Invalid data received for parameters, not JSON", self)
                 raise Exception("Corruption at reading data of the request {}".format(request_type))
 
             for item, param_item in enumerate(self._ariston_other_data):
@@ -2013,7 +2013,7 @@ class AristonHandler:
                 self._ariston_units = copy.deepcopy(resp.json())
             except copy.error:
                 self._ariston_units = {}
-                _LOGGER.warning("%s Invalid data received for units, not JSON", self)
+                self._LOGGER.warning("%s Invalid data received for units, not JSON", self)
                 raise Exception("Corruption at reading data of the request {}".format(request_type))
 
             self._set_sensors(request_type)
@@ -2024,7 +2024,7 @@ class AristonHandler:
                 self._ariston_currency = copy.deepcopy(resp.json())
             except copy.error:
                 self._ariston_currency = {}
-                _LOGGER.warning("%s Invalid data received for currency, not JSON", self)
+                self._LOGGER.warning("%s Invalid data received for currency, not JSON", self)
                 raise Exception("Corruption at reading data of the request {}".format(request_type))
 
             self._set_sensors(request_type)
@@ -2035,7 +2035,7 @@ class AristonHandler:
                 self._ariston_dhw_data = copy.deepcopy(resp.json())
             except copy.error:
                 self._ariston_dhw_data = {}
-                _LOGGER.warning("%s Invalid data received for DHW, not JSON", self)
+                self._LOGGER.warning("%s Invalid data received for DHW, not JSON", self)
                 raise Exception("Corruption at reading data of the request {}".format(request_type))
 
             self._set_sensors(request_type)
@@ -2046,7 +2046,7 @@ class AristonHandler:
                 self._version = resp.json()["info"]["version"]
             except KeyError:
                 self._version = ""
-                _LOGGER.warning("%s Invalid version fetched", self)
+                self._LOGGER.warning("%s Invalid version fetched", self)
 
             self._set_sensors(request_type)
             self._set_visible_data()
@@ -2152,7 +2152,7 @@ class AristonHandler:
                             list_to_send.append(self._ARISTON_THERMAL_CLEANSE_FUNCTION)
                             list_to_send.append(self._ARISTON_THERMAL_CLEANSE_CYCLE)
                     except KeyError:
-                        _LOGGER.warning('%s Problem appending thermal cleanse', self)
+                        self._LOGGER.warning('%s Problem appending thermal cleanse', self)
                     ids_to_fetch = ",".join(map(str, list_to_send))
                     url = self._url + '/Menu/User/Refresh/' + self._plant_id + '?paramIds=' + ids_to_fetch + '&umsys=si'
                     http_timeout = self._timeout_long
@@ -2181,15 +2181,15 @@ class AristonHandler:
                             timeout=http_timeout,
                             verify=True)
                     except requests.exceptions.RequestException:
-                        _LOGGER.warning("%s %s Problem reading data", self, request_type)
+                        self._LOGGER.warning("%s %s Problem reading data", self, request_type)
                         raise Exception("Request {} has failed with an exception".format(request_type))
                     self._store_data(resp, request_type)
             else:
-                _LOGGER.debug("%s %s Still setting data, read restricted", self, request_type)
+                self._LOGGER.debug("%s %s Still setting data, read restricted", self, request_type)
         else:
-            _LOGGER.warning("%s %s Not properly logged in to get the data", self, request_type)
+            self._LOGGER.warning("%s %s Not properly logged in to get the data", self, request_type)
             raise Exception("Not logged in to fetch the data")
-        _LOGGER.info('Data fetched')
+        self._LOGGER.info('Data fetched')
         return True
 
     def _queue_get_data(self):
@@ -2201,12 +2201,12 @@ class AristonHandler:
                 retry_in = self._timer_between_param_delay * self._HTTP_DELAY_MULTIPLY
                 self._timer_between_set = self._timer_between_param_delay * self._HTTP_DELAY_MULTIPLY + \
                                           self._HTTP_TIMER_SET_WAIT
-                _LOGGER.warning('%s Retrying in %s seconds', self, retry_in)
+                self._LOGGER.warning('%s Retrying in %s seconds', self, retry_in)
             else:
                 # work as usual
                 retry_in = self._timer_between_param_delay
                 self._timer_between_set = self._timer_between_param_delay + self._HTTP_TIMER_SET_WAIT
-                _LOGGER.debug('%s Fetching data in %s seconds', self, retry_in)
+                self._LOGGER.debug('%s Fetching data in %s seconds', self, retry_in)
             self._timer_periodic_read.cancel()
             if self._started:
                 self._timer_periodic_read = threading.Timer(retry_in, self._queue_get_data)
@@ -2296,24 +2296,24 @@ class AristonHandler:
             with self._lock:
                 was_online = self.available
                 self._errors += 1
-                _LOGGER.warning("Connection errors: %i", self._errors)
+                self._LOGGER.warning("Connection errors: %i", self._errors)
                 offline = not self.available
             if offline and was_online:
                 with self._plant_id_lock:
                     self._login = False
-                _LOGGER.error("Ariston is offline: Too many errors")
+                self._LOGGER.error("Ariston is offline: Too many errors")
             raise Exception("Getting HTTP data has failed")
-        _LOGGER.info("Data fetched successfully, available %s", self.available)
+        self._LOGGER.info("Data fetched successfully, available %s", self.available)
         with self._lock:
             was_offline = not self.available
             self._errors = 0
         if was_offline:
-            _LOGGER.info("Ariston back online")
+            self._LOGGER.info("Ariston back online")
         return
 
     def _setting_http_data(self, set_data, request_type=""):
         """setting of data"""
-        _LOGGER.info('setting http data')
+        self._LOGGER.info('setting http data')
         try:
             if self._store_file:
                 store_file = 'data_ariston' + request_type + '.json'
@@ -2330,7 +2330,7 @@ class AristonHandler:
                     json.dump([self._set_time_start, self._set_time_end, self._get_time_start, self._get_time_end],
                               ariston_fetched)
         except TypeError:
-            _LOGGER.warning('%s Problem storing files', self)
+            self._LOGGER.warning('%s Problem storing files', self)
 
         if request_type == self._REQUEST_SET_OTHER:
             url = self._url + '/Menu/User/Submit/' + self._plant_id + '?umsys=si'
@@ -2350,10 +2350,10 @@ class AristonHandler:
                 json=set_data,
                 verify=True)
         except requests.exceptions.RequestException:
-            _LOGGER.warning('%s %s error', self, request_type)
+            self._LOGGER.warning('%s %s error', self, request_type)
             raise Exception("Unexpected error for setting in the request {}".format(request_type))
         if resp.status_code != 200:
-            _LOGGER.warning("%s %s Command to set data failed with code: %s", self, request_type, resp.status_code)
+            self._LOGGER.warning("%s %s Command to set data failed with code: %s", self, request_type, resp.status_code)
             raise Exception("Unexpected code {} for setting in the request {}".format(resp.status_code, request_type))
         self._set_time_end[request_type] = time.time()
         if request_type == self._REQUEST_SET_MAIN:
@@ -2367,7 +2367,7 @@ class AristonHandler:
                 store_file_path = os.path.join(self._store_folder, store_file)
                 with open(store_file_path, "w") as f:
                     f.write(resp.text)
-        _LOGGER.info('%s %s Data was presumably changed', self, request_type)
+        self._LOGGER.info('%s %s Data was presumably changed', self, request_type)
 
     def _preparing_setting_http_data(self):
         """Preparing and setting http data"""
@@ -2933,7 +2933,7 @@ class AristonHandler:
                                 changed_parameter[self._set_request_for_parameter(parameter)]:
                             del self._set_param[parameter]
                 except KeyError:
-                    _LOGGER.warning('%s Can not clear set parameters', self)
+                    self._LOGGER.warning('%s Can not clear set parameters', self)
 
                 # show data as changed in case we were able to read data in between requests
                 self._set_visible_data()
@@ -2942,9 +2942,9 @@ class AristonHandler:
                     try:
                         self._setting_http_data(set_data, self._REQUEST_SET_MAIN)
                     except TypeError:
-                        _LOGGER.warning('%s Setting main data failed', self)
+                        self._LOGGER.warning('%s Setting main data failed', self)
                     except requests.exceptions.RequestException:
-                        _LOGGER.warning('%s Setting main data failed', self)
+                        self._LOGGER.warning('%s Setting main data failed', self)
 
                 elif changed_parameter[self._REQUEST_SET_OTHER] != {}:
 
@@ -2952,22 +2952,22 @@ class AristonHandler:
                         if set_param_data:
                             self._setting_http_data(set_param_data, self._REQUEST_SET_OTHER)
                         else:
-                            _LOGGER.warning('%s No valid data to set parameters', self)
+                            self._LOGGER.warning('%s No valid data to set parameters', self)
                     except TypeError:
-                        _LOGGER.warning('%s Setting parameter data failed', self)
+                        self._LOGGER.warning('%s Setting parameter data failed', self)
                     except requests.exceptions.RequestException:
-                        _LOGGER.warning('%s Setting parameter data failed', self)
+                        self._LOGGER.warning('%s Setting parameter data failed', self)
 
                 elif changed_parameter[self._REQUEST_SET_UNITS]:
                     try:
                         self._setting_http_data(set_units_data, self._REQUEST_SET_UNITS)
                     except TypeError:
-                        _LOGGER.warning('%s Setting units data failed', self)
+                        self._LOGGER.warning('%s Setting units data failed', self)
                     except requests.exceptions.RequestException:
-                        _LOGGER.warning('%s Setting units data failed', self)
+                        self._LOGGER.warning('%s Setting units data failed', self)
 
                 else:
-                    _LOGGER.debug('%s Same data was used', self)
+                    self._LOGGER.debug('%s Same data was used', self)
 
                 for key, value in changed_parameter.items():
                     if value != {}:
@@ -3007,7 +3007,7 @@ class AristonHandler:
                         for request_item in self._set_param_group:
                             self._set_param_group[request_item] = False
 
-                        _LOGGER.warning("%s No stable connection to set the data", self)
+                        self._LOGGER.warning("%s No stable connection to set the data", self)
                         raise Exception("Unstable connection to set the data")
 
     def _check_if_dhw_economy(self):
@@ -3142,9 +3142,9 @@ class AristonHandler:
                 if self._PARAM_MODE in good_values:
                     try:
                         self._set_param[self._PARAM_MODE] = self._MODE_TO_VALUE[good_values[self._PARAM_MODE]]
-                        _LOGGER.info('%s New mode %s', self, good_values[self._PARAM_MODE])
+                        self._LOGGER.info('%s New mode %s', self, good_values[self._PARAM_MODE])
                     except KeyError:
-                        _LOGGER.warning('%s Unknown or unsupported mode or key error: %s', self,
+                        self._LOGGER.warning('%s Unknown or unsupported mode or key error: %s', self,
                                         good_values[self._PARAM_MODE])
                         bad_values[self._PARAM_MODE] = good_values[self._PARAM_MODE]
 
@@ -3161,9 +3161,9 @@ class AristonHandler:
                         else:
                             # None value
                             self._set_param[self._PARAM_CH_SET_TEMPERATURE] = temperature
-                        _LOGGER.info('%s New CH temperature %s', self, temperature)
+                        self._LOGGER.info('%s New CH temperature %s', self, temperature)
                     except KeyError:
-                        _LOGGER.warning('%s Not supported CH temperature value: %s', self,
+                        self._LOGGER.warning('%s Not supported CH temperature value: %s', self,
                                         good_values[self._PARAM_CH_SET_TEMPERATURE])
                         bad_values[self._PARAM_CH_SET_TEMPERATURE] = good_values[self._PARAM_CH_SET_TEMPERATURE]
 
@@ -3177,9 +3177,9 @@ class AristonHandler:
                             self._set_param[self._PARAM_DHW_ECONOMY_TEMPERATURE] = temperature
                         else:
                             self._set_param[self._PARAM_DHW_COMFORT_TEMPERATURE] = temperature
-                        _LOGGER.info('%s New DHW temperature %s', self, temperature)
+                        self._LOGGER.info('%s New DHW temperature %s', self, temperature)
                     except KeyError:
-                        _LOGGER.warning('%s Not supported DHW temperature value: %s', self,
+                        self._LOGGER.warning('%s Not supported DHW temperature value: %s', self,
                                         good_values[self._PARAM_DHW_SET_TEMPERATURE])
                         bad_values[self._PARAM_DHW_SET_TEMPERATURE] = good_values[self._PARAM_DHW_SET_TEMPERATURE]
 
@@ -3189,11 +3189,11 @@ class AristonHandler:
                         # round to nearest 1
                         temperature = round(float(good_values[self._PARAM_DHW_COMFORT_TEMPERATURE]))
                         self._set_param[self._PARAM_DHW_COMFORT_TEMPERATURE] = temperature
-                        _LOGGER.info('%s New DHW scheduled comfort temperature %s', self,
+                        self._LOGGER.info('%s New DHW scheduled comfort temperature %s', self,
                                      good_values[self._PARAM_DHW_COMFORT_TEMPERATURE])
                         self._check_if_dhw_economy()
                     except KeyError:
-                        _LOGGER.warning('%s Not supported DHW scheduled comfort temperature value: %s', self,
+                        self._LOGGER.warning('%s Not supported DHW scheduled comfort temperature value: %s', self,
                                         good_values[self._PARAM_DHW_COMFORT_TEMPERATURE])
                         bad_values[self._PARAM_DHW_COMFORT_TEMPERATURE] = \
                             good_values[self._PARAM_DHW_COMFORT_TEMPERATURE]
@@ -3204,10 +3204,10 @@ class AristonHandler:
                         # round to nearest 1
                         temperature = round(float(good_values[self._PARAM_DHW_ECONOMY_TEMPERATURE]))
                         self._set_param[self._PARAM_DHW_ECONOMY_TEMPERATURE] = temperature
-                        _LOGGER.info('%s New DHW scheduled economy temperature %s', self, temperature)
+                        self._LOGGER.info('%s New DHW scheduled economy temperature %s', self, temperature)
                         self._check_if_dhw_economy()
                     except KeyError:
-                        _LOGGER.warning('%s Not supported DHW scheduled economy temperature value: %s', self,
+                        self._LOGGER.warning('%s Not supported DHW scheduled economy temperature value: %s', self,
                                         good_values[self._PARAM_DHW_ECONOMY_TEMPERATURE])
                         bad_values[self._PARAM_DHW_ECONOMY_TEMPERATURE] = \
                             good_values[self._PARAM_DHW_ECONOMY_TEMPERATURE]
@@ -3218,10 +3218,10 @@ class AristonHandler:
                         # round to nearest 0.5
                         temperature = round(float(good_values[self._PARAM_CH_COMFORT_TEMPERATURE]) * 2.0) / 2.0
                         self._set_param[self._PARAM_CH_COMFORT_TEMPERATURE] = temperature
-                        _LOGGER.info('%s New CH temperature %s', self, temperature)
+                        self._LOGGER.info('%s New CH temperature %s', self, temperature)
                         self._check_if_ch_economy()
                     except KeyError:
-                        _LOGGER.warning('%s Not supported CH comfort scheduled temperature value: %s', self,
+                        self._LOGGER.warning('%s Not supported CH comfort scheduled temperature value: %s', self,
                                         good_values[self._PARAM_CH_COMFORT_TEMPERATURE])
                         bad_values[self._PARAM_CH_COMFORT_TEMPERATURE] = \
                             good_values[self._PARAM_CH_COMFORT_TEMPERATURE]
@@ -3232,10 +3232,10 @@ class AristonHandler:
                         # round to nearest 0.5
                         temperature = round(float(good_values[self._PARAM_CH_ECONOMY_TEMPERATURE]) * 2.0) / 2.0
                         self._set_param[self._PARAM_CH_ECONOMY_TEMPERATURE] = temperature
-                        _LOGGER.info('%s New CH temperature %s', self, temperature)
+                        self._LOGGER.info('%s New CH temperature %s', self, temperature)
                         self._check_if_ch_economy()
                     except KeyError:
-                        _LOGGER.warning('%s Not supported CH economy scheduled temperature value: %s', self,
+                        self._LOGGER.warning('%s Not supported CH economy scheduled temperature value: %s', self,
                                         good_values[self._PARAM_CH_ECONOMY_TEMPERATURE])
                         bad_values[self._PARAM_CH_ECONOMY_TEMPERATURE] = \
                             good_values[self._PARAM_CH_ECONOMY_TEMPERATURE]
@@ -3244,9 +3244,9 @@ class AristonHandler:
                 if self._PARAM_CH_MODE in good_values:
                     try:
                         self._set_param[self._PARAM_CH_MODE] = self._CH_MODE_TO_VALUE[good_values[self._PARAM_CH_MODE]]
-                        _LOGGER.info('%s New CH mode %s', self, good_values[self._PARAM_CH_MODE])
+                        self._LOGGER.info('%s New CH mode %s', self, good_values[self._PARAM_CH_MODE])
                     except KeyError:
-                        _LOGGER.warning('%s Unknown or unsupported CH mode or key error: %s', self,
+                        self._LOGGER.warning('%s Unknown or unsupported CH mode or key error: %s', self,
                                         good_values[self._PARAM_CH_MODE])
                         bad_values[self._PARAM_CH_MODE] = good_values[self._PARAM_CH_MODE]
 
@@ -3254,9 +3254,9 @@ class AristonHandler:
                 if self._PARAM_DHW_MODE in good_values:
                     try:
                         self._set_param[self._PARAM_DHW_MODE] = self._DHW_MODE_TO_VALUE[self._PARAM_DHW_MODE]
-                        _LOGGER.info('%s New DHW mode %s', self, good_values[self._PARAM_DHW_MODE])
+                        self._LOGGER.info('%s New DHW mode %s', self, good_values[self._PARAM_DHW_MODE])
                     except KeyError:
-                        _LOGGER.warning('%s Unknown or unsupported DHW mode or key error: %s', self,
+                        self._LOGGER.warning('%s Unknown or unsupported DHW mode or key error: %s', self,
                                         good_values[self._PARAM_DHW_MODE])
                         bad_values[self._PARAM_DHW_MODE] = good_values[self._PARAM_DHW_MODE]
 
@@ -3265,10 +3265,10 @@ class AristonHandler:
                     try:
                         self._set_param[self._PARAM_DHW_COMFORT_FUNCTION] = \
                             self._DHW_COMFORT_FUNCT_TO_VALUE[good_values[self._PARAM_DHW_COMFORT_FUNCTION]]
-                        _LOGGER.info('%s New DHW Comfort function %s', self,
+                        self._LOGGER.info('%s New DHW Comfort function %s', self,
                                      good_values[self._PARAM_DHW_COMFORT_FUNCTION])
                     except KeyError:
-                        _LOGGER.warning('%s Unknown or unsupported DHW Comfort function or key error: %s', self,
+                        self._LOGGER.warning('%s Unknown or unsupported DHW Comfort function or key error: %s', self,
                                         good_values[self._PARAM_DHW_COMFORT_FUNCTION])
                         bad_values[self._PARAM_DHW_COMFORT_FUNCTION] = good_values[self._PARAM_DHW_COMFORT_FUNCTION]
 
@@ -3277,9 +3277,9 @@ class AristonHandler:
                     try:
                         self._set_param[self._PARAM_INTERNET_TIME] = \
                             self._PARAM_STRING_TO_VALUE[good_values[self._PARAM_INTERNET_TIME]]
-                        _LOGGER.info('%s New Internet time is %s', self, good_values[self._PARAM_INTERNET_TIME])
+                        self._LOGGER.info('%s New Internet time is %s', self, good_values[self._PARAM_INTERNET_TIME])
                     except KeyError:
-                        _LOGGER.warning('%s Unknown or unsupported Internet time or key error: %s', self,
+                        self._LOGGER.warning('%s Unknown or unsupported Internet time or key error: %s', self,
                                         good_values[self._PARAM_INTERNET_TIME])
                         bad_values[self._PARAM_INTERNET_TIME] = good_values[self._PARAM_INTERNET_TIME]
 
@@ -3288,9 +3288,9 @@ class AristonHandler:
                     try:
                         self._set_param[self._PARAM_INTERNET_WEATHER] = \
                             self._PARAM_STRING_TO_VALUE[good_values[self._PARAM_INTERNET_WEATHER]]
-                        _LOGGER.info('%s New Internet weather is %s', self, good_values[self._PARAM_INTERNET_WEATHER])
+                        self._LOGGER.info('%s New Internet weather is %s', self, good_values[self._PARAM_INTERNET_WEATHER])
                     except KeyError:
-                        _LOGGER.warning('%s Unknown or unsupported Internet weather or key error: %s', self,
+                        self._LOGGER.warning('%s Unknown or unsupported Internet weather or key error: %s', self,
                                         good_values[self._PARAM_INTERNET_WEATHER])
                         bad_values[self._PARAM_INTERNET_WEATHER] = good_values[self._PARAM_INTERNET_WEATHER]
 
@@ -3303,16 +3303,16 @@ class AristonHandler:
                                 self._set_param[self._PARAM_THERMAL_CLEANSE_CYCLE] = \
                                     good_values[self._PARAM_THERMAL_CLEANSE_CYCLE]
                                 item_present = True
-                                _LOGGER.info('%s New Thermal Cleanse Cycle is %s', self,
+                                self._LOGGER.info('%s New Thermal Cleanse Cycle is %s', self,
                                              good_values[self._PARAM_THERMAL_CLEANSE_CYCLE])
                                 break
                         if not item_present:
-                            _LOGGER.warning('%s Can not set Thermal Cleanse Cycle: %s', self,
+                            self._LOGGER.warning('%s Can not set Thermal Cleanse Cycle: %s', self,
                                             good_values[self._PARAM_THERMAL_CLEANSE_CYCLE])
                             bad_values[self._PARAM_THERMAL_CLEANSE_CYCLE] = \
                                 good_values[self._PARAM_THERMAL_CLEANSE_CYCLE]
                     except KeyError:
-                        _LOGGER.warning('%s Unknown or unsupported Thermal Cleanse Cycle or key error: %s', self,
+                        self._LOGGER.warning('%s Unknown or unsupported Thermal Cleanse Cycle or key error: %s', self,
                                         good_values[self._PARAM_THERMAL_CLEANSE_CYCLE])
                         bad_values[self._PARAM_THERMAL_CLEANSE_CYCLE] = good_values[self._PARAM_THERMAL_CLEANSE_CYCLE]
 
@@ -3325,16 +3325,16 @@ class AristonHandler:
                                 self._set_param[self._PARAM_THERMAL_CLEANSE_FUNCTION] = \
                                     self._PARAM_STRING_TO_VALUE[good_values[self._PARAM_THERMAL_CLEANSE_FUNCTION]]
                                 item_present = True
-                                _LOGGER.info('%s New Thermal Cleanse Function is %s', self,
+                                self._LOGGER.info('%s New Thermal Cleanse Function is %s', self,
                                              good_values[self._PARAM_THERMAL_CLEANSE_FUNCTION])
                                 break
                         if not item_present:
-                            _LOGGER.warning('%s Can not set Thermal Cleanse Function: %s', self,
+                            self._LOGGER.warning('%s Can not set Thermal Cleanse Function: %s', self,
                                             good_values[self._PARAM_THERMAL_CLEANSE_FUNCTION])
                             bad_values[self._PARAM_THERMAL_CLEANSE_FUNCTION] = \
                                 good_values[self._PARAM_THERMAL_CLEANSE_FUNCTION]
                     except KeyError:
-                        _LOGGER.warning('%s Unknown or unsupported Thermal Cleanse Function or key error: %s', self,
+                        self._LOGGER.warning('%s Unknown or unsupported Thermal Cleanse Function or key error: %s', self,
                                         good_values[self._PARAM_THERMAL_CLEANSE_FUNCTION])
                         bad_values[self._PARAM_THERMAL_CLEANSE_FUNCTION] = \
                             good_values[self._PARAM_THERMAL_CLEANSE_FUNCTION]
@@ -3344,10 +3344,10 @@ class AristonHandler:
                     try:
                         self._set_param[self._PARAM_CH_AUTO_FUNCTION] = \
                             self._PARAM_STRING_TO_VALUE[good_values[self._PARAM_CH_AUTO_FUNCTION]]
-                        _LOGGER.info('%s New Internet weather is %s', self,
+                        self._LOGGER.info('%s New Internet weather is %s', self,
                                      good_values[self._PARAM_CH_AUTO_FUNCTION])
                     except KeyError:
-                        _LOGGER.warning('%s Unknown or unsupported Internet weather or key error: %s', self,
+                        self._LOGGER.warning('%s Unknown or unsupported Internet weather or key error: %s', self,
                                         good_values[self._PARAM_CH_AUTO_FUNCTION])
                         bad_values[self._PARAM_CH_AUTO_FUNCTION] = good_values[self._PARAM_CH_AUTO_FUNCTION]
 
@@ -3355,9 +3355,9 @@ class AristonHandler:
                 if self._PARAM_UNITS in good_values:
                     try:
                         self._set_param[self._PARAM_UNITS] = self._UNIT_TO_VALUE[good_values[self._PARAM_UNITS]]
-                        _LOGGER.info('%s New units of measurement is %s', self, good_values[self._PARAM_UNITS])
+                        self._LOGGER.info('%s New units of measurement is %s', self, good_values[self._PARAM_UNITS])
                     except KeyError:
-                        _LOGGER.warning('%s Unknown or unsupported units of measurement or key error: %s', self,
+                        self._LOGGER.warning('%s Unknown or unsupported units of measurement or key error: %s', self,
                                         good_values[self._PARAM_UNITS])
                         bad_values[self._PARAM_UNITS] = good_values[self._PARAM_UNITS]
 
@@ -3375,7 +3375,7 @@ class AristonHandler:
                     raise Exception("Following values could not be set: {}".format(bad_values))
 
         else:
-            _LOGGER.warning("%s No valid data fetched from server to set changes", self)
+            self._LOGGER.warning("%s No valid data fetched from server to set changes", self)
             raise Exception("Connection data error, problem to set data")
 
     def start(self) -> None:
@@ -3402,6 +3402,6 @@ class AristonHandler:
                     json={},
                     verify=True)
             except requests.exceptions.RequestException:
-                _LOGGER.warning('%s Logout error', self)
+                self._LOGGER.warning('%s Logout error', self)
         self._session.close()
         self._login = False
