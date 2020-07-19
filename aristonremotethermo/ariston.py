@@ -81,7 +81,7 @@ class AristonHandler:
         - 'internet_time' - internet time.
         - 'internet_weather' - internet weather.
         - API specific 'update' - API update is available.
-        - API specific 'online_version' - API version available.
+        - API specific 'online_version' - API version online.
 
     'retries' - number of retries to set the data;
 
@@ -102,7 +102,7 @@ class AristonHandler:
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     """
 
-    _VERSION = "1.0.12"
+    _VERSION = "1.0.13"
 
     _PARAM_ACCOUNT_CH_GAS = "account_ch_gas"
     _PARAM_ACCOUNT_CH_ELECTRICITY = "account_ch_electricity"
@@ -192,9 +192,6 @@ class AristonHandler:
     _ARISTON_URL = "https://www.ariston-net.remotethermo.com"
     _GITHUB_LATEST_RELEASE = \
         'https://pypi.python.org/pypi/aristonremotethermo/json'
-
-    _DELAY_NORMAL = "normal"
-    _DELAY_LONG = "long"
 
     _DEFAULT_HVAC = _VAL_SUMMER
     _DEFAULT_POWER_ON = _VAL_SUMMER
@@ -514,27 +511,30 @@ class AristonHandler:
             self._UNIT_IMPERIAL,
             self._UNIT_AUTO
         }:
-            raise
+            raise Exception("Invalid unit")
 
         if not isinstance(retries, int) or retries < 0:
-            raise
+            raise Exception("Invalid retries")
 
         if not isinstance(polling, float) and not isinstance(polling, int) or polling < 1:
-            raise
+            raise Exception("Invalid poling")
 
-        if not isinstance(retries, int):
-            raise
+        if not isinstance(store_file, int):
+            raise Exception("Invalid store files")
 
         if not isinstance(ch_and_dhw, bool):
-            raise
+            raise Exception("Invalid ch_and_dhw")
 
         if not isinstance(dhw_unknown_as_on, bool):
-            raise
+            raise Exception("Invalid dhw_unknown_as_on")
+
+        if not isinstance(sensors, list):
+            raise Exception("Invalid sensors type")
 
         if sensors:
             for sensor in sensors:
                 if sensor not in self._SENSOR_LIST:
-                    raise
+                    sensors.remove(sensor)
 
         if store_file:
             if store_folder != "":
@@ -700,7 +700,7 @@ class AristonHandler:
         self._timeout_short = self._HTTP_TIMEOUT_GET_SHORT * polling
 
         # initiate timer between set request attempts
-        self._timer_between_set = self._DELAY_NORMAL
+        self._timer_between_set = self._timer_between_param_delay + self._HTTP_TIMER_SET_WAIT
 
         self._current_temp_economy_ch = None
         self._current_temp_economy_dhw = None
@@ -821,7 +821,6 @@ class AristonHandler:
         Note that it is parameters supported by API, not the server, so some might be impossible to be set.
         use property 'supported_sensors_set_values' to find allowed values to be set.
         """
-
         return self._SENSOR_SET_LIST
 
     @property
@@ -854,21 +853,21 @@ class AristonHandler:
                             param_values.add(self._VALUE_TO_CH_MODE[value])
                 sensors_dictionary[parameter] = param_values
             elif parameter == self._PARAM_CH_SET_TEMPERATURE:
-                param_values = {}
+                param_values = dict()
                 if self._ariston_data != {}:
                     param_values["min"] = self._ariston_data["zone"]["comfortTemp"]["min"]
                     param_values["max"] = self._ariston_data["zone"]["comfortTemp"]["max"]
                     param_values["step"] = 0.5
                 sensors_dictionary[parameter] = param_values
             elif parameter == self._PARAM_CH_COMFORT_TEMPERATURE:
-                param_values = {}
+                param_values = dict()
                 if self._ariston_data != {}:
                     param_values["min"] = self._ariston_data["zone"]["comfortTemp"]["min"]
                     param_values["max"] = self._ariston_data["zone"]["comfortTemp"]["max"]
                     param_values["step"] = 0.5
                 sensors_dictionary[parameter] = param_values
             elif parameter == self._PARAM_CH_ECONOMY_TEMPERATURE:
-                param_values = {}
+                param_values = dict()
                 if self._ariston_data != {}:
                     param_values["min"] = self._ariston_data["zone"]["comfortTemp"]["min"]
                     param_values["max"] = self._ariston_data["zone"]["comfortTemp"]["max"]
@@ -877,14 +876,14 @@ class AristonHandler:
             elif parameter == self._PARAM_CH_AUTO_FUNCTION:
                 sensors_dictionary[parameter] = [*self._PARAM_STRING_TO_VALUE]
             elif parameter == self._PARAM_DHW_SET_TEMPERATURE:
-                param_values = {}
+                param_values = dict()
                 if self._ariston_data != {}:
                     param_values["min"] = self._ariston_data["dhwTemp"]["min"]
                     param_values["max"] = self._ariston_data["dhwTemp"]["max"]
                     param_values["step"] = 1
                 sensors_dictionary[parameter] = param_values
             elif parameter == self._PARAM_DHW_COMFORT_TEMPERATURE:
-                param_values = {}
+                param_values = dict()
                 if self._ariston_data != {}:
                     param_values["min"] = max(self._ariston_data["dhwTemp"]["min"],
                                               self._ariston_data["dhwTimeProgComfortTemp"]["min"])
@@ -893,7 +892,7 @@ class AristonHandler:
                     param_values["step"] = 1
                 sensors_dictionary[parameter] = param_values
             elif parameter == self._PARAM_DHW_ECONOMY_TEMPERATURE:
-                param_values = {}
+                param_values = dict()
                 if self._ariston_data != {}:
                     param_values["min"] = self._ariston_data["dhwTemp"]["min"]
                     param_values["max"] = self._ariston_data["dhwTemp"]["max"]
@@ -914,7 +913,7 @@ class AristonHandler:
             elif parameter == self._PARAM_UNITS:
                 sensors_dictionary[parameter] = [*self._UNIT_TO_VALUE]
             elif parameter == self._PARAM_THERMAL_CLEANSE_CYCLE:
-                param_values = {}
+                param_values = dict()
                 if self._ariston_other_data != {}:
                     for param_item in self._ariston_other_data:
                         if param_item["id"] == self._ARISTON_THERMAL_CLEANSE_CYCLE:
@@ -2200,12 +2199,13 @@ class AristonHandler:
             if self._errors >= self._MAX_ERRORS_TIMER_EXTEND:
                 # give a little rest to the system if too many errors
                 retry_in = self._timer_between_param_delay * self._HTTP_DELAY_MULTIPLY
-                self._timer_between_set = self._DELAY_LONG
+                self._timer_between_set = self._timer_between_param_delay * self._HTTP_DELAY_MULTIPLY + \
+                                          self._HTTP_TIMER_SET_WAIT
                 _LOGGER.warning('%s Retrying in %s seconds', self, retry_in)
             else:
                 # work as usual
                 retry_in = self._timer_between_param_delay
-                self._timer_between_set = self._DELAY_NORMAL
+                self._timer_between_set = self._timer_between_param_delay + self._HTTP_TIMER_SET_WAIT
                 _LOGGER.debug('%s Fetching data in %s seconds', self, retry_in)
             self._timer_periodic_read.cancel()
             if self._started:
@@ -2914,11 +2914,7 @@ class AristonHandler:
                     if value != {} and self._set_retry[key] < self._set_max_retries:
                         if not self._set_scheduled:
                             # retry again after enough time
-                            if self._timer_between_set == self._DELAY_NORMAL:
-                                retry_in = self._timer_between_param_delay + self._HTTP_TIMER_SET_WAIT
-                            else:
-                                retry_in = self._timer_between_param_delay * self._HTTP_DELAY_MULTIPLY + \
-                                           self._HTTP_TIMER_SET_WAIT
+                            retry_in = self._timer_between_set
                             self._timer_periodic_set.cancel()
                             if self._started:
                                 self._timer_periodic_set = threading.Timer(retry_in, self._preparing_setting_http_data)
@@ -2997,11 +2993,7 @@ class AristonHandler:
                 if not self._set_scheduled:
                     if self._set_retry[self._REQUEST_SET_MAIN] < self._set_max_retries:
                         # retry again after enough time to fetch data twice
-                        if self._timer_between_set == self._DELAY_NORMAL:
-                            retry_in = self._timer_between_param_delay + self._HTTP_TIMER_SET_WAIT
-                        else:
-                            retry_in = self._timer_between_param_delay * self._HTTP_DELAY_MULTIPLY + \
-                                       self._HTTP_TIMER_SET_WAIT
+                        retry_in = self._timer_between_set
                         self._timer_periodic_set.cancel()
                         if self._started:
                             self._timer_periodic_set = threading.Timer(retry_in, self._preparing_setting_http_data)

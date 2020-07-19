@@ -1,3 +1,7 @@
+# Version 1.0.13
+- code cleanup;
+- additional class for handling Velis is introduced;
+
 # Version 1.0.12
 - DHW and CH availability status update;
 
