@@ -1,9 +1,12 @@
+# Version 1.0.15
+- Setting of data fixed for AquaAristonHandler;
+
 # Version 1.0.14
-- code cleanup;
+- Code cleanup;
 
 # Version 1.0.13
-- code cleanup;
-- additional class for handling Velis is introduced;
+- Code cleanup;
+- Additional class for handling Velis is introduced;
 
 # Version 1.0.12
 - DHW and CH availability status update;
