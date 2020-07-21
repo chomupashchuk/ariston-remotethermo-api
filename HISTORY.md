@@ -1,3 +1,6 @@
+# Version 1.0.16
+- Setting of temperature modified for Velis Wifi;
+
 # Version 1.0.15
 - Setting of data fixed for AquaAristonHandler;
 
