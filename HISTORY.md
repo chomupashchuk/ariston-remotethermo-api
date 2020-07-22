@@ -1,3 +1,7 @@
+# Version 1.0.17
+- Storing of files fixed;
+- New handling of required temperatures for Velis wifi;
+
 # Version 1.0.16
 - Setting of temperature modified for Velis Wifi;
 
