@@ -2,6 +2,9 @@
 Thin integration is a side project which works only with 1 zone climate configured. It logs in to Ariston website (https://www.ariston-net.remotethermo.com) and fetches/sets data on that site.
 You are free to modify and distribute it. It is distributed 'as is' with no liability for possible damage.
 
+## Donations
+If you like this app, please consider donating some sum to your local charity organizations or global organization like Red Cross. I don't mind receiving donations myself (you may conact me for more details if you want to), but please consider charity at first.
+
 ## API and Home Assistant
 API was created in order to be used by Home Assistant. Example of API use for Home Assistant can be found: https://github.com/chomupashchuk/ariston-remotethermo-home-assistant-v2 and https://github.com/chomupashchuk/ariston-aqua-remotethermo-home-assistant
 
