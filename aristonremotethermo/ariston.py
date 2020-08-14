@@ -100,7 +100,7 @@ class AristonHandler:
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     """
 
-    _VERSION = "1.0.17"
+    _VERSION = "1.0.18"
 
     _LOGGER = logging.getLogger(__name__)
 
@@ -504,7 +504,7 @@ class AristonHandler:
         Initialize API.
         """
         if sensors is None:
-            sensors = []
+            sensors = list()
 
         if units not in {
             self._UNIT_METRIC,

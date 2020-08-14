@@ -59,7 +59,7 @@ class AquaAristonHandler:
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     """
 
-    _VERSION = "1.0.17"
+    _VERSION = "1.0.18"
 
     _LOGGER = logging.getLogger(__name__)
 
@@ -273,6 +273,9 @@ class AquaAristonHandler:
         """
         Initialize API.
         """
+
+        if sensors is None:
+            sensors = list()
 
         if not isinstance(retries, int) or retries < 0:
             raise Exception("Invalid retries")

@@ -1,3 +1,6 @@
+# Version 1.0.18
+- Aqua Ariston fix issue with no sensors being provided;
+
 # Version 1.0.17
 - Storing of files fixed;
 - New handling of required temperatures for Velis wifi;
