@@ -1,3 +1,6 @@
+# Version 1.0.19
+- Ariston added cooling pump statistics;
+
 # Version 1.0.18
 - Aqua Ariston fix issue with no sensors being provided;
 
