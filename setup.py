@@ -8,7 +8,7 @@ with open('HISTORY.md') as history_file:
 
 setup_args = dict(
     name='aristonremotethermo',
-    version='1.0.19',
+    version='1.0.20',
     description='Ariston NET Remotethermo integration',
     long_description_content_type="text/markdown",
     long_description=README + '\n\n' + HISTORY,

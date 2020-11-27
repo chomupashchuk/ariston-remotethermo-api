@@ -1,3 +1,6 @@
+# Version 1.0.20
+- Lydos Hybrid included;
+
 # Version 1.0.19
 - Ariston added cooling pump statistics;
 
