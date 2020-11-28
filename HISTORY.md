@@ -1,3 +1,7 @@
+# Version 1.0.21
+- Fixing interation with Alteas One;
+- CRITICAL: manual identification of Aqua Ariston boiler is required due to problem with automated identification;
+
 # Version 1.0.20
 - Lydos Hybrid included;
 
