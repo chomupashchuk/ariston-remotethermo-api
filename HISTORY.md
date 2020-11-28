@@ -1,3 +1,6 @@
+# Version 1.0.22
+- Night mode added;
+
 # Version 1.0.21
 - Fixing interation with Alteas One;
 - CRITICAL: manual identification of Aqua Ariston boiler is required due to problem with automated identification;
