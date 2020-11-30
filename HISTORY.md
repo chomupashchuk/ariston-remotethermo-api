@@ -1,3 +1,6 @@
+# Version 1.0.23
+- Availability handling update;
+
 # Version 1.0.22
 - Night mode added;
 

@@ -15,12 +15,15 @@ API connect to the website, which then connect via gateway to the boiler. The bu
   - Ariston Clas Evo
   - Ariston Genus One with Ariston BCH cylinder
   - Ariston Nimbus Flex
-You may check possible support of your boiler by logging into https://www.ariston-net.remotethermo.com and if climate and water heater parts (like temperatures) are available on the home page, then intergation should potentially work.
+  - Ariston Alteas One
 
 ## AquaAristonHandler was tested works with:
-  - Ariston Velis Wifi
+  - Ariston Velis
   - Ariston Lydos
-You may check possible support of your boiler by logging into https://www.ariston-net.remotethermo.com and if login is successful but no climate or water heater is present.
+  - Ariston Lydos Hybrid
+
+## Check which version to use
+You may check possible support of your boiler by logging into https://www.ariston-net.remotethermo.com and if climate and water heater parts (like temperatures) are available on the home page, then the integration should potentially work with AristonHandler.
 
 ## API use
 ### API import
