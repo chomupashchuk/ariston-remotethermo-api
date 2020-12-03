@@ -1,3 +1,6 @@
+# Version 1.0.25
+- Fix units of measurement setting;
+
 # Version 1.0.24
 - Availability handling update;
 
