@@ -1,3 +1,6 @@
+# Version 1.0.26
+- Fix error parsing for AristonHandler;
+
 # Version 1.0.25
 - Fix units of measurement setting;
 
