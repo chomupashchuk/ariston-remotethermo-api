@@ -1,3 +1,6 @@
+# Version 1.0.27
+- Additional data stored in case of server errors;
+
 # Version 1.0.26
 - Fix error parsing for AristonHandler;
 
