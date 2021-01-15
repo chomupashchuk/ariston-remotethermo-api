@@ -1,3 +1,6 @@
+# Version 1.0.28
+- CH Water temperature added in AristonHandler for supported models;
+
 # Version 1.0.27
 - Additional data stored in case of server errors;
 
