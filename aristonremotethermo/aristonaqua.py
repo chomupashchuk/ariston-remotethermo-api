@@ -62,12 +62,15 @@ class AquaAristonHandler:
     'store_folder' - folder to store HTTP and internal data to. If empty string is used, then current working directory
     is used with a folder 'http_logs' within it.
 
+    'logging_level' - defines level of logging - allowed values [CRITICAL, ERROR, WARNING, INFO, DEBUG, NOTSET=(default)]
+
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     """
 
     _VERSION = "1.0.28"
 
     _LOGGER = logging.getLogger(__name__)
+    _LOGGING_LEVELS = ["CRITICAL", "ERROR", "WARNING", "INFO", "DEBUG", "NOTSET"]
 
     _VALUE = "value"
     _UNITS = "units"
@@ -301,6 +304,7 @@ class AquaAristonHandler:
                  polling: Union[float, int] = 1.,
                  store_file: bool = False,
                  store_folder: str = "",
+                 logging_level: str = "NOTSET",
                  ) -> None:
         """
         Initialize API.
@@ -324,6 +328,9 @@ class AquaAristonHandler:
         if boiler_type not in self._SUPPORTED_BOILER_TYPES:
             raise Exception("Unknown boiler type")
 
+        if logging_level not in self._LOGGING_LEVELS:
+            raise Exception("Invalid logging_level")
+
         if sensors:
             for sensor in sensors:
                 if sensor not in self._SENSOR_LIST:
@@ -336,6 +343,17 @@ class AquaAristonHandler:
         if store_file:
             if not os.path.isdir(self._store_folder):
                 os.makedirs(self._store_folder)
+
+        """
+        Logging settings
+        """
+        self._logging_level = logging.getLevelName(logging_level)
+        self._LOGGER.setLevel(self._logging_level)
+        self._console_handler = logging.StreamHandler()
+        self._console_handler.setLevel(self._logging_level)
+        self._formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        self._console_handler.setFormatter(self._formatter)
+        self._LOGGER.addHandler(self._console_handler)
 
         self._ariston_sensors = {}
         for sensor_all in self._SENSOR_LIST:
