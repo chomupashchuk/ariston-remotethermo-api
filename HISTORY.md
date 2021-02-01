@@ -1,3 +1,7 @@
+# Version 1.0.29
+- Logging to console included;
+- Lydos Hybrid maximum value update;
+
 # Version 1.0.28
 - CH Water temperature added in AristonHandler for supported models;
 

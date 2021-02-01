@@ -111,10 +111,24 @@ class AristonHandler:
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     """
 
-    _VERSION = "1.0.28"
+    _VERSION = "1.0.29"
 
     _LOGGER = logging.getLogger(__name__)
-    _LOGGING_LEVELS = ["CRITICAL", "ERROR", "WARNING", "INFO", "DEBUG", "NOTSET"]
+    _LEVEL_CRITICAL = "CRITICAL"
+    _LEVEL_ERROR = "ERROR"
+    _LEVEL_WARNING = "WARNING"
+    _LEVEL_INFO = "INFO"
+    _LEVEL_DEBUG = "DEBUG"
+    _LEVEL_NOTSET = "NOTSET"
+
+    _LOGGING_LEVELS = [
+        _LEVEL_CRITICAL,
+        _LEVEL_ERROR,
+        _LEVEL_WARNING,
+        _LEVEL_INFO,
+        _LEVEL_DEBUG,
+        _LEVEL_NOTSET
+    ]
 
     _PARAM_ACCOUNT_CH_GAS = "account_ch_gas"
     _PARAM_ACCOUNT_CH_ELECTRICITY = "account_ch_electricity"
@@ -547,7 +561,7 @@ class AristonHandler:
                  units: str = _UNIT_METRIC,
                  ch_and_dhw: bool = False,
                  dhw_unknown_as_on: bool = True,
-                 logging_level: str = "NOTSET",
+                 logging_level: str = _LEVEL_NOTSET,
                  ) -> None:
         """
         Initialize API.
