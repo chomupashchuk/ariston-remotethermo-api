@@ -1,3 +1,6 @@
+# Version "1.0.30"
+- Callback function added to inform about values received from the server or status changed;
+
 # Version "1.0.29"
 - Logging to console included;
 - Lydos Hybrid maximum value update;
