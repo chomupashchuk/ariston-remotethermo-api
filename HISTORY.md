@@ -1,3 +1,7 @@
+
+# Version "1.0.31"
+- Class method for reading the data is included;
+
 # Version "1.0.30"
 - Callback function added to inform about values received from the server or status changed;
 
