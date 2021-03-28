@@ -1,4 +1,7 @@
 
+# Version "1.0.32"
+- Tweaks in supported parameters detection to avoid issues on specific configurations;
+
 # Version "1.0.31"
 - Class method for reading the data is included;
 
