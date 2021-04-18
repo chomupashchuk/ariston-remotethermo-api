@@ -1,4 +1,7 @@
 
+# Version "1.0.33"
+- Read Plant ID property method included;
+
 # Version "1.0.32"
 - Tweaks in supported parameters detection to avoid issues on specific configurations;
 
