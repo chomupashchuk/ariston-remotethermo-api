@@ -1,3 +1,5 @@
+# Version "1.0.34"
+- Economy temperature reporting in set values when economy mode is active;
 
 # Version "1.0.33"
 - Read Plant ID property method included;
