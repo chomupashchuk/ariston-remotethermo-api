@@ -1,3 +1,6 @@
+# Version "1.0.35"
+- Bug fixes;
+
 # Version "1.0.34"
 - Economy temperature reporting in set values when economy mode is active;
 
