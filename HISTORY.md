@@ -1,3 +1,6 @@
+# Version "1.0.37"
+- Cooling included in Ariston integration;
+
 # Version "1.0.35"
 - Bug fixes;
 
