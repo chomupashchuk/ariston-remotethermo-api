@@ -4,6 +4,7 @@ import json
 import logging
 import math
 import os
+import re
 import threading
 import time
 from typing import Union
@@ -111,7 +112,7 @@ class AristonHandler:
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     """
 
-    _VERSION = "1.0.37"
+    _VERSION = "1.0.40"
 
     _LOGGER = logging.getLogger(__name__)
     _LEVEL_CRITICAL = "CRITICAL"
@@ -463,6 +464,21 @@ class AristonHandler:
         _PARAM_CH_WATER_TEMPERATURE
     }
 
+    _MENU_TO_SENSOR = {
+        "6.9.2" : _PARAM_DHW_COMFORT_FUNCTION,
+        "6.9.1.0.0" : _PARAM_DHW_COMFORT_TEMPERATURE,
+        "6.9.1.0.1" : _PARAM_DHW_ECONOMY_TEMPERATURE,
+        "6.16.5" : _PARAM_SIGNAL_STRENGTH,
+        "6.16.6" : _PARAM_INTERNET_TIME,
+        "6.16.7" : _PARAM_INTERNET_WEATHER,
+        "6.3.1.0.0" : _PARAM_CH_COMFORT_TEMPERATURE,
+        "6.3.1.0.1" : _PARAM_CH_ECONOMY_TEMPERATURE,
+        "6.3.3" : _PARAM_CH_AUTO_FUNCTION,
+        "6.3.0.0" : _PARAM_CH_WATER_TEMPERATURE,
+        "6.9.5.0" : _PARAM_THERMAL_CLEANSE_FUNCTION,
+        "6.9.5.1" : _PARAM_THERMAL_CLEANSE_CYCLE, 
+    }
+
     def _get_request_for_parameter(self, data):
         if data in self._GET_REQUEST_CH_PROGRAM:
             return self._REQUEST_GET_CH
@@ -563,6 +579,7 @@ class AristonHandler:
                  ch_and_dhw: bool = False,
                  dhw_unknown_as_on: bool = True,
                  logging_level: str = _LEVEL_NOTSET,
+                 gw: str = "",
                  ) -> None:
         """
         Initialize API.
@@ -626,6 +643,8 @@ class AristonHandler:
         self._ch_available = False
         self._dhw_available = False
         self._changing_data = False
+
+        self._default_gw = gw
 
         # clear read sensor values
         self._ariston_sensors = dict()
@@ -1174,6 +1193,54 @@ class AristonHandler:
                 sensors_dictionary[parameter] = [*self._PARAM_STRING_TO_VALUE]
         return sensors_dictionary
 
+    def _get_plant_id(self, resp):
+        plant_id = ""
+        if resp.url.startswith(self._url + "/PlantDashboard/Index/") or resp.url.startswith(
+                self._url + "/PlantManagement/Index/") or resp.url.startswith(
+                self._url + "/PlantPreference/Index/") or resp.url.startswith(
+                self._url + "/Error/Active/") or resp.url.startswith(
+                self._url + "/PlantGuest/Index/") or resp.url.startswith(
+                self._url + "/TimeProg/Index/"):
+                plant_id = resp.url.split("/")[5]
+        elif resp.url.startswith(self._url + "/PlantData/Index/") or resp.url.startswith(
+                self._url + "/UserData/Index/"):
+                plant_id_attribute = resp.url.split("/")[5]
+                plant_id = plant_id_attribute.split("?")[0]
+        elif resp.url.startswith(self._url + "/Menu/User/Index/"):
+                plant_id = resp.url.split("/")[6]
+        else:
+            self._LOGGER.warning('%s Authentication login error', self)
+            raise Exception("Login parsing of URL failed")
+        if plant_id:
+            if self._default_gw:
+                # If GW is specified, it can differ from the default
+                url = self._url + "/PlantManagement/Index/" + plant_id
+                try:
+                    resp = self._session.get(
+                            url,
+                            auth=self._token,
+                            timeout=self._HTTP_TIMEOUT_LOGIN,
+                            verify=True)
+                except requests.exceptions.RequestException:
+                    self._LOGGER.warning('%s Checking gateways error', self)
+                    raise Exception("Checking gateways error")
+                if resp.status_code != 200:
+                    self._LOGGER.warning('%s Checking gateways error', self)
+                    raise Exception("Checking gateways error")
+                gateways = set()
+                for item in re.findall(r'"GwId":"[a-zA-Z0-9]+"', resp.text):
+                    detected_gw = item.replace('"GwId"', '').replace(':', '').replace('"', '').replace(' ', '')
+                    gateways.add(detected_gw)
+                gateways_txt = ", ".join(gateways)
+                if self._default_gw not in gateways:
+                    self._LOGGER.error(f'Gateway "{self._default_gw}" is not in the list of allowed gateways: {gateways_txt}')
+                    raise Exception(f'Gateway "{self._default_gw}" is not in the list of allowed gateways: {gateways_txt}')
+                else:
+                    self._LOGGER.info(f'Allowed gateways: {gateways_txt}')
+                plant_id = self._default_gw
+
+        return plant_id
+
     def _login_session(self):
         """Login to fetch Ariston Plant ID and confirm login"""
         if not self._login and self._started:
@@ -1201,31 +1268,14 @@ class AristonHandler:
                         f.write(resp.text)
                 self._LOGGER.warning('%s Unexpected reply during login: %s', self, resp.status_code)
                 raise Exception("Login unexpected reply code")
-            if resp.url.startswith(self._url + "/PlantDashboard/Index/") or resp.url.startswith(
-                    self._url + "/PlantManagement/Index/") or resp.url.startswith(
-                    self._url + "/PlantPreference/Index/") or resp.url.startswith(
-                    self._url + "/Error/Active/") or resp.url.startswith(
-                    self._url + "/PlantGuest/Index/") or resp.url.startswith(
-                    self._url + "/TimeProg/Index/"):
+            plant_id = self._get_plant_id(resp)
+            
+            if plant_id:
                 with self._plant_id_lock:
-                    self._plant_id = resp.url.split("/")[5]
+                    self._plant_id = plant_id
                     self._login = True
                     self._LOGGER.info('%s Plant ID is %s', self, self._plant_id)
-            elif resp.url.startswith(self._url + "/PlantData/Index/") or resp.url.startswith(
-                    self._url + "/UserData/Index/"):
-                with self._plant_id_lock:
-                    plant_id_attribute = resp.url.split("/")[5]
-                    self._plant_id = plant_id_attribute.split("?")[0]
-                    self._login = True
-                    self._LOGGER.info('%s Plant ID is %s', self, self._plant_id)
-            elif resp.url.startswith(self._url + "/Menu/User/Index/"):
-                with self._plant_id_lock:
-                    self._plant_id = resp.url.split("/")[6]
-                    self._login = True
-                    self._LOGGER.info('%s Plant ID is %s', self, self._plant_id)
-            else:
-                self._LOGGER.warning('%s Authentication login error', self)
-                raise Exception("Login parsing of URL failed")
+
         return
 
     def _set_sensors(self, request_type=""):
@@ -2028,6 +2078,15 @@ class AristonHandler:
                 store_file_path = os.path.join(self._store_folder, store_file)
                 with open(store_file_path, "w") as f:
                     f.write(resp.text)
+            if request_type == self._REQUEST_GET_OTHER and resp.status_code == 500:
+                not_supported = set()
+                for re_string in re.findall('Violated Postcondition.*menu', resp.text):
+                    for menu_item in self._MENU_TO_SENSOR:
+                        check_menu = f"&quot;{menu_item}&quot;"
+                        if check_menu in re_string:
+                            not_supported.add(self._MENU_TO_SENSOR[menu_item])
+                if not_supported:
+                    self._LOGGER.error('%s Unsupported sensors detected: %s, disable corresponding binary_sensors/sensors/switches in the configuration', self, not_supported)
             self._LOGGER.warning('%s %s invalid reply code %s', self, request_type, resp.status_code)
             raise Exception("Unexpected code {} received for the request {}".format(resp.status_code, request_type))
         if not self._json_validator(resp.json()):

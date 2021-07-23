@@ -1,3 +1,9 @@
+# Version "1.0.40"
+- Multiple boilers under one account (gateway must be specified per each instance);
+
+# Version "1.0.38"
+- Unsupported sensor detection attempt in Ariston integration;
+
 # Version "1.0.37"
 - Cooling included in Ariston integration;
 
