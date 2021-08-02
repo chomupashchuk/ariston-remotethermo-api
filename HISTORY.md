@@ -1,3 +1,6 @@
+# Version "1.0.41"
+- Dedicated files per gateway;
+
 # Version "1.0.40"
 - Multiple boilers under one account (gateway must be specified per each instance);
 
