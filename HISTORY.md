@@ -1,3 +1,6 @@
+# Version "1.0.43"
+- New sensors in Ariston integration for energy consumption today;
+
 # Version "1.0.41"
 - Dedicated files per gateway;
 
