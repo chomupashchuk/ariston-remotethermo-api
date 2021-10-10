@@ -1,3 +1,10 @@
+# Version "1.0.46"
+- Revision align;
+
+# Version "1.0.44"
+- Updated handling of parameter sensors;
+- BREAKING CHANGE: `AquaAristonHandler` moved to 'https://pypi.org/project/aristonremotethermo/'.
+
 # Version "1.0.43"
 - New sensors in Ariston integration for energy consumption today;
 
