@@ -1,3 +1,6 @@
+# Version "1.0.47"
+- Multiple zones support;
+
 # Version "1.0.46"
 - Revision align;
 
