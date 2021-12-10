@@ -1,3 +1,6 @@
+# Version "1.0.48"
+- Todays energy use sensor handling update;
+
 # Version "1.0.47"
 - Multiple zones support;
 
