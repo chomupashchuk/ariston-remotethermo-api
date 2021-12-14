@@ -1,3 +1,6 @@
+# Version "1.0.51"
+- new sensors support;
+
 # Version "1.0.49"
 - request handling update;
 
