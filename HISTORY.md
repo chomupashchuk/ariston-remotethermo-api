@@ -1,3 +1,6 @@
+# Version "1.0.52"
+- login fix;
+
 # Version "1.0.51"
 - new sensors support;
 
