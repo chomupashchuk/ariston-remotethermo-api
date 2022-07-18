@@ -1,3 +1,6 @@
+# Version "2.0.1"
+- multiple incompatible changes, reduced amount of supported functions due to changes in REST requests by Ariston;
+
 # Version "1.0.52"
 - login fix;
 
