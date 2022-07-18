@@ -1,8 +1,6 @@
 """Suppoort for Ariston."""
 import copy
 import logging
-from multiprocessing.sharedctypes import Value
-from operator import ne
 import re
 import threading
 from typing import Union
@@ -29,7 +27,7 @@ class AristonHandler:
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     """
 
-    _VERSION = "2.0.1"
+    _VERSION = "2.0.2"
 
     _ARISTON_URL = "https://www.ariston-net.remotethermo.com"
 
