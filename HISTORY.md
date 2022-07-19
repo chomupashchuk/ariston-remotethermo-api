@@ -1,3 +1,7 @@
+# Version "2.0.4"
+- new energy use sensors;
+- bug fixes
+
 # Version "2.0.1"
 - multiple incompatible changes, reduced amount of supported functions due to changes in REST requests by Ariston;
 
