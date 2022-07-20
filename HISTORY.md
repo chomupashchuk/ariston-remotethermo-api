@@ -1,3 +1,7 @@
+# Version "2.0.7"
+- energy consumption sensors update;
+- code refactoring;
+
 # Version "2.0.5"
 - todayes energy consumption calculation;
 
