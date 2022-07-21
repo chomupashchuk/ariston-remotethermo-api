@@ -1,4 +1,7 @@
 # Version "2.0.7"
+- dhw flame fix;
+
+# Version "2.0.7"
 - energy consumption sensors update;
 - code refactoring;
 
