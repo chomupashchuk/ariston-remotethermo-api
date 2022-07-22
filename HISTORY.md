@@ -1,3 +1,6 @@
+# Version "2.0.10"
+- Additional set of energy sensors (some models have both some have one);
+
 # Version "2.0.9"
 - energy use fix;
 
