@@ -1,3 +1,6 @@
+# Version "2.0.11"
+- Some unknown energy use for DHW and CH (e.g. on some models that support 6 parameters "ch_energy + ch_energy_delta == ch_energy2" );
+
 # Version "2.0.10"
 - Additional set of energy sensors (some models have both some have one);
 
