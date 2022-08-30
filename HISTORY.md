@@ -1,3 +1,6 @@
+# Version "2.0.12"
+- INCOMPATIBLE CHANGES due to zones introduction. Input sensors are the same but the structure inside for zone sensors include additional "_zone1", "_zone2" ...;
+
 # Version "2.0.11"
 - Some unknown energy use for DHW and CH (e.g. on some models that support 6 parameters "ch_energy + ch_energy_delta == ch_energy2" );
 
