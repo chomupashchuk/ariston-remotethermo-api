@@ -1,3 +1,6 @@
+# Version "2.0.14"
+- heat pump support;
+
 # Version "2.0.12"
 - INCOMPATIBLE CHANGES due to zones introduction. Input sensors are the same but the structure inside for zone sensors include additional "_zone1", "_zone2" ...;
 
